@@ -1,14 +1,16 @@
 package com.soarhe.downloader.task;
 
+import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.text.TextUtils;
+import android.util.Log;
 
-import com.soarhe.downloader.IDownloadCallback;
 import com.soarhe.downloader.utils.Utils;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 
@@ -17,12 +19,13 @@ import java.util.List;
  */
 public final class TaskManager {
 
+    private static final String TAG = "taskManager";
+
     private static final int MSG_CHECKLIST = 0;
     private static final int MSG_INITSTOREDTASK = 1;
     private static final int MSG_ADDTASK = 2;
 
     private HashMap<String, AbsTask> mTaskMap;
-    private IDownloadCallback mObserver;
     private WaitingQueue mWaitingQueue;
     private RunningList mRunningList;
     private HandlerThread mInnerThread;
@@ -46,28 +49,52 @@ public final class TaskManager {
     private void initStoredTask() {
     }
 
-    public void setObserver(IDownloadCallback aObserver) {
-        mObserver = aObserver;
-    }
 
     public String addTask(TaskInfo aInfo) {
         // all kinds of checking
+        // net
+
+        //sdcard
+        if (!Environment.isExternalStorageEmulated()) {
+            return null;
+        }
 
         // fill info's essential fields
         if (TextUtils.isEmpty(aInfo.mFilename)) {
             aInfo.mFilename = Utils.getFilenamebyInfo(aInfo);
         }
         if (TextUtils.isEmpty(aInfo.mSavepath)) {
-            aInfo.mFilename = Utils.getDefaultPath();
+            aInfo.mSavepath = Utils.getDefaultPath();
         }
+
         if (TextUtils.isEmpty(aInfo.mFilename) || TextUtils.isEmpty(aInfo.mSavepath)) {
+            return null;
+        }
+
+        if (TextUtils.isEmpty(aInfo.mTmpName)) {
+            aInfo.mTmpName = aInfo.mFilename + "tmp";
+        }
+
+        if (!aInfo.mSavepath.endsWith("/")) {
+            aInfo.mSavepath += "/";
+        }
+
+        // dir&file check
+        try {
+            File dir = new File(aInfo.mSavepath);
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+            new File(aInfo.mSavepath + aInfo.mTmpName).createNewFile();
+        } catch (Exception e) {
+            e.printStackTrace();
             return null;
         }
 
         // choose task
         AbsTask task = null;
         if (TextUtils.isEmpty(aInfo.mType)) {
-            task = new NormalTask(aInfo);
+            task = new WifiTask(aInfo);
         }
 
         if (task != null) {
@@ -90,9 +117,6 @@ public final class TaskManager {
                 // do nothing
             }
         }
-        if (mObserver != null) {
-            mObserver.onPause(aKey);
-        }
     }
 
     public void resume(String aKey) {
@@ -113,9 +137,6 @@ public final class TaskManager {
             } else {
                 task.mInfo.mStatus = TaskInfo.Status.CANCEL;
             }
-        }
-        if (mObserver != null) {
-            mObserver.onCancel(aKey);
         }
     }
 
@@ -147,6 +168,12 @@ public final class TaskManager {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case MSG_CHECKLIST:
+                    Log.d(TAG, "checklist");
+                    for (AbsTask task : mTaskMap.values()) {
+                        if (task.mInfo.mStatus == TaskInfo.Status.CANCEL) {
+                            mTaskMap.remove(task);
+                        }
+                    }
                     mWaitingQueue.checkstatus();
                     mRunningList.checkstatus();
                     // 暂停冗余task,回到waitinglist

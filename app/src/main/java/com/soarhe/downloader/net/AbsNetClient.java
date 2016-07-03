@@ -4,7 +4,7 @@ import java.io.InputStream;
 import java.util.Map;
 
 /**
- * Created by baidu on 16/6/17.
+ * Created by hejunwei on 16/6/17.
  */
 public abstract class AbsNetClient {
 

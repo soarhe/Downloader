@@ -60,4 +60,10 @@ public final class Headers {
 
         return headers;
     }
+
+    public static Headers from(Map<String, String> aHeader) {
+        Headers headers = new Headers();
+        headers.mHeaderMap = aHeader;
+        return headers;
+    }
 }

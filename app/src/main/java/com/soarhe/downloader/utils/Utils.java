@@ -10,7 +10,7 @@ import com.soarhe.downloader.task.TaskInfo;
 public class Utils {
 
     public static String getFilenamebyInfo(TaskInfo aInfo) {
-        return "";
+        return "test.apk";
     }
 
     public static String getDefaultPath() {

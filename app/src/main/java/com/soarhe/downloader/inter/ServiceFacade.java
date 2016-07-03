@@ -1,4 +1,4 @@
-package com.soarhe.downloader;
+package com.soarhe.downloader.inter;
 
 import com.soarhe.downloader.task.TaskInfo;
 import com.soarhe.downloader.task.TaskManager;
@@ -6,22 +6,20 @@ import com.soarhe.downloader.task.TaskManager;
 /**
  * Created by hejunwei on 16/6/13.
  */
-public final class Facade {
+public class ServiceFacade {
 
-    private static Facade sInstance;
-    private boolean mInited;
+    private static ServiceFacade sInstance;
     private TaskManager mTaskmgr;
 
-    private Facade() {
-        mInited = false;
+    private ServiceFacade() {
         mTaskmgr = new TaskManager();
     }
 
-    public static Facade getInstance() {
+    public static ServiceFacade getInstance() {
         if (sInstance == null) {
-            synchronized (sInstance) {
+            synchronized (ServiceFacade.class) {
                 if (sInstance == null) {
-                    sInstance = new Facade();
+                    sInstance = new ServiceFacade();
                 }
             }
         }
@@ -42,10 +40,6 @@ public final class Facade {
 
     public void cancel(String aKey) {
         mTaskmgr.cancel(aKey);
-    }
-
-    public void setObserver(IDownloadCallback aObserver) {
-        mTaskmgr.setObserver(aObserver);
     }
 
 }

@@ -1,7 +1,5 @@
 package com.soarhe.downloader.net;
 
-import com.soarhe.downloader.IDownloadCallback;
-
 import java.util.Map;
 
 /**
@@ -10,7 +8,6 @@ import java.util.Map;
 public class NetBridge {
 
     private static NetBridge sInstance;
-    private IDownloadCallback mCallback;
     private AbsNetClient mNetClient;
 
     private NetBridge() {
@@ -19,7 +16,7 @@ public class NetBridge {
 
     public static NetBridge getInstance() {
         if (sInstance == null) {
-            synchronized (sInstance) {
+            synchronized (NetBridge.class) {
                 if (sInstance == null) {
                     sInstance = new NetBridge();
                 }
