@@ -2,6 +2,7 @@ package com.soarhe.downloader.inter;
 
 import com.soarhe.downloader.task.TaskInfo;
 import com.soarhe.downloader.task.TaskManager;
+import com.soarhe.downloader.write.WriteManager;
 
 /**
  * Created by hejunwei on 16/6/13.
@@ -40,6 +41,19 @@ public class ServiceFacade {
 
     public void cancel(String aKey) {
         mTaskmgr.cancel(aKey);
+    }
+
+    public void fail(String aKey) {
+
+    }
+
+    public void release() {
+        if (mTaskmgr != null) {
+            mTaskmgr.release();
+            mTaskmgr = null;
+        }
+        WriteManager.getInstance().release();
+        sInstance = null;
     }
 
 }

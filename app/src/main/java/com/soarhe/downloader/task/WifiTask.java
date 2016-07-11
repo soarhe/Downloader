@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.soarhe.downloader.net.AbsNetClient;
 import com.soarhe.downloader.net.NetBridge;
+import com.soarhe.downloader.write.WriteManager;
 
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
@@ -27,6 +28,7 @@ public class WifiTask extends AbsTask {
 
     @Override
     public void start() {
+        getHeaderSync();
         NetBridge.getInstance().start(mInfo.mKey, mInfo.mUrl, mInfo.getHeaders(), mCallback);
     }
 
@@ -42,20 +44,13 @@ public class WifiTask extends AbsTask {
         mInfo.mStatus = TaskInfo.Status.CANCEL;
     }
 
-    private class NormalTaskCallback implements AbsNetClient.InetCallback {
+    @Override
+    public void fail() {
+        NetBridge.getInstance().stop(mInfo.mKey);
+        mInfo.mStatus = TaskInfo.Status.FAIL;
+    }
 
-        @Override
-        public void onGetHeaders(Map<String, String> aHeaders) {
-            Log.d(TAG, "getHeaders");
-            if (mInfo.mTotalsize <= 0 && aHeaders.containsKey("content-length")) {
-                try {
-                    mInfo.mTotalsize = Long.valueOf(aHeaders.get("content-length"));
-                    // to do update database
-                } catch (NumberFormatException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+    private class NormalTaskCallback implements AbsNetClient.InetCallback {
 
         @Override
         public void onDownloading(InputStream aIs) {
@@ -67,18 +62,21 @@ public class WifiTask extends AbsTask {
                 }
                 buf = new byte[BUF_SIZE];
                 int readcount = 0;
+                int offset = 0;
                 while ((readcount = aIs.read(buf)) != -1) {
-                    mOutStream.write(buf, 0, readcount);
-                    mOutStream.flush();
-                    // 更新状态
-                    mInfo.mCurrentsize += readcount;
-                    Log.d(TAG, "ondownloading: " + mInfo.mCurrentsize + "/" + mInfo.mTotalsize);
-                    if (mInfo.mTotalsize > 0 &&
-                            mInfo.mCurrentsize > mInfo.mTotalsize) {
-                        onFail("larger than total");
-                        NetBridge.getInstance().stop(mInfo.mKey);
-                        return;
-                    }
+                    WriteManager.getInstance().writeFile(mInfo, buf, offset, readcount);
+                    offset += readcount;
+//                    mOutStream.write(buf, 0, readcount);
+//                    mOutStream.flush();
+//                    // 更新状态
+//                    mInfo.mCurrentsize += readcount;
+//                    Log.d(TAG, "ondownloading: " + mInfo.mCurrentsize + "/" + mInfo.mTotalsize);
+//                    if (mInfo.mTotalsize > 0 &&
+//                            mInfo.mCurrentsize > mInfo.mTotalsize) {
+//                        onFail("larger than total");
+//                        NetBridge.getInstance().stop(mInfo.mKey);
+//                        return;
+//                    }
                     // callback
                 }
 

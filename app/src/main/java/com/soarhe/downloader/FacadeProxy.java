@@ -39,25 +39,6 @@ public class FacadeProxy {
         if (!mInited) {
             mContext = aContext.getApplicationContext();
             mInited = true;
-            mContext.getContentResolver().registerContentObserver(UpdateProvider.CONTENT_URI,
-                    true,
-                    new ContentObserver(new Handler()) {
-                        @Override
-                        public void onChange(boolean selfChange) {
-                            super.onChange(selfChange);
-                        }
-
-                        @Override
-                        public void onChange(boolean selfChange, Uri uri) {
-                            super.onChange(selfChange, uri);
-                        }
-
-                        @Override
-                        public boolean deliverSelfNotifications() {
-                            return super.deliverSelfNotifications();
-                        }
-                    }
-            );
         }
     }
 
@@ -96,8 +77,8 @@ public class FacadeProxy {
         return null;
     }
 
-    // observer
-    public void setObserver() {
-
+    public void release() {
+        Intent intent = new Intent(mContext, DownloadService.class);
+        mContext.stopService(intent);
     }
 }

@@ -23,4 +23,9 @@ public class WapTask extends AbsTask {
     public void cancel() {
 
     }
+
+    @Override
+    public void fail() {
+
+    }
 }

@@ -1,6 +1,5 @@
 package com.soarhe.downloader.net;
 
-import com.soarhe.downloader.IDownloadCallback;
 import com.squareup.okhttp.Call;
 import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.Headers;
@@ -9,7 +8,6 @@ import com.squareup.okhttp.Response;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -42,16 +40,6 @@ public class OkHttpClient extends AbsNetClient{
             @Override
             public void onResponse(Response response) throws IOException {
                 try {
-                    // headers
-                    Headers headers = response.headers();
-                    if (aCallback != null) {
-                        Map<String, String> mapheaders = new HashMap<String, String>();
-                        for (String key : headers.names()) {
-                            mapheaders.put(key, headers.get(key));
-                        }
-                        aCallback.onGetHeaders(mapheaders);
-                    }
-
                     //downloading
                     InputStream is = response.body().byteStream();
                     if (aCallback != null) {

@@ -46,6 +46,10 @@ public final class TaskManager {
         mHandler.obtainMessage(MSG_CHECKLIST).sendToTarget();
     }
 
+    public void release() {
+
+    }
+
     private void initStoredTask() {
     }
 
@@ -136,6 +140,15 @@ public final class TaskManager {
                 task.cancel();
             } else {
                 task.mInfo.mStatus = TaskInfo.Status.CANCEL;
+            }
+        }
+    }
+
+    public void fail(String aKey) {
+        AbsTask task = mTaskMap.get(aKey);
+        if (task != null && task.mInfo != null) {
+            if (task.mInfo.mStatus == TaskInfo.Status.RUNNING) {
+                task.cancel();
             }
         }
     }

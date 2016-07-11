@@ -53,6 +53,7 @@ public class DownloadService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        ServiceFacade.getInstance().release();
     }
 
     @Nullable

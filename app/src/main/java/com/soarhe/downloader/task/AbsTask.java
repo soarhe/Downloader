@@ -1,5 +1,7 @@
 package com.soarhe.downloader.task;
 
+import java.util.HashMap;
+
 /**
  * Created by baidu on 16/6/16.
  */
@@ -21,4 +23,11 @@ public abstract class AbsTask {
     public abstract void pause();
 
     public abstract void cancel();
+
+    public abstract void fail();
+
+    protected HashMap<String, String> getHeaderSync() {
+        HashMap<String, String> headers = new HashMap<>();
+        return null;
+    }
 }
