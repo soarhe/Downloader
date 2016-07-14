@@ -10,7 +10,6 @@ import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.util.Map;
 
 /**
@@ -19,7 +18,6 @@ import java.util.Map;
 public class WifiTask extends AbsTask {
 
     private NormalTaskCallback mCallback;
-    private BufferedOutputStream mOutStream;
 
     public WifiTask(TaskInfo aInfo) {
         super(aInfo);
@@ -53,52 +51,45 @@ public class WifiTask extends AbsTask {
     private class NormalTaskCallback implements AbsNetClient.InetCallback {
 
         @Override
-        public void onDownloading(InputStream aIs) {
-            byte[] buf = null;
-            try {
-                if (mOutStream == null) {
-                    mOutStream = new BufferedOutputStream(
-                            new FileOutputStream(mInfo.getTmpFullpath(), true), BUF_SIZE);
+        public void onstart(Map<String, String> aResponseHeaders) {
+            if (aResponseHeaders != null) {
+                String encoding = aResponseHeaders.get("Transfer-Encoding");
+                if (encoding != null && encoding.equals("chunked")) {
+                    return;
+                } else {
+                    String length = aResponseHeaders.get("Content-Length");
+                    if (length != null) {
+                        try {
+                            mInfo.mTotalsize = Long.valueOf(length);
+                        } catch (Exception e) {
+                            mInfo.mTotalsize = 0;
+                        }
+                    }
                 }
-                buf = new byte[BUF_SIZE];
+            }
+        }
+
+        @Override
+        public void onDownloading(InputStream aIs) {
+            try {
+                byte[] buf = new byte[BUF_SIZE];
                 int readcount = 0;
                 int offset = 0;
                 while ((readcount = aIs.read(buf)) != -1) {
                     WriteManager.getInstance().writeFile(mInfo, buf, offset, readcount);
                     offset += readcount;
-//                    mOutStream.write(buf, 0, readcount);
-//                    mOutStream.flush();
-//                    // 更新状态
-//                    mInfo.mCurrentsize += readcount;
-//                    Log.d(TAG, "ondownloading: " + mInfo.mCurrentsize + "/" + mInfo.mTotalsize);
-//                    if (mInfo.mTotalsize > 0 &&
-//                            mInfo.mCurrentsize > mInfo.mTotalsize) {
-//                        onFail("larger than total");
-//                        NetBridge.getInstance().stop(mInfo.mKey);
-//                        return;
-//                    }
-                    // callback
                 }
 
             } catch (Exception e) {
+                e.printStackTrace();
                 NetBridge.getInstance().stop(mInfo.mKey);
                 onFail(e.getMessage());
-            } finally {
-                if (mOutStream != null) {
-                    try {
-                        mOutStream.close();
-                    } catch (IOException ioe) {
-                        ioe.printStackTrace();
-                    }
-                    mOutStream = null;
-                }
-                buf = null;
             }
         }
 
         @Override
         public void onSuccess() {
-            Log.d(TAG, "on Success");
+//            Log.d(TAG, "on Success");
         }
 
         @Override

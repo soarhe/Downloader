@@ -14,6 +14,7 @@ public abstract class AbsNetClient {
 
 
     public interface InetCallback {
+        void onstart(Map<String, String> aResponseHeaders);
         void onDownloading(InputStream aIs);
         void onSuccess();
         void onFail(String aReason);

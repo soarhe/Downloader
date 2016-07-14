@@ -19,7 +19,7 @@ import java.util.List;
  */
 public final class TaskManager {
 
-    private static final String TAG = "taskManager";
+    public static final String TAG = "taskManager";
 
     private static final int MSG_CHECKLIST = 0;
     private static final int MSG_INITSTOREDTASK = 1;
@@ -148,7 +148,9 @@ public final class TaskManager {
         AbsTask task = mTaskMap.get(aKey);
         if (task != null && task.mInfo != null) {
             if (task.mInfo.mStatus == TaskInfo.Status.RUNNING) {
-                task.cancel();
+                task.fail();
+            } else {
+                task.mInfo.mStatus = TaskInfo.Status.FAIL;
             }
         }
     }

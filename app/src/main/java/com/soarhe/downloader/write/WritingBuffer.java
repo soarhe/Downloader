@@ -10,10 +10,10 @@ public class WritingBuffer {
 
     public static final int BUF_SIZE = AbsTask.BUF_SIZE;
 
-    private TaskInfo mInfo;
-    private int mOffset;
-    private int mLength;
-    private byte[] mBuffer;
+    public TaskInfo mInfo;
+    public int mOffset;
+    public int mLength;
+    public byte[] mBuffer;
 
     /**
      * constructor
@@ -46,4 +46,7 @@ public class WritingBuffer {
         mInfo = null;
         mBuffer = null;
     }
+
+
+
 }

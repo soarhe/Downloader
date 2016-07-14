@@ -6,8 +6,11 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.os.Process;
+import android.util.Log;
 
+import com.soarhe.downloader.inter.ServiceFacade;
 import com.soarhe.downloader.task.TaskInfo;
+import com.soarhe.downloader.task.TaskManager;
 
 /**
  * Created by hejunwei on 16/7/11.
@@ -15,7 +18,6 @@ import com.soarhe.downloader.task.TaskInfo;
 public class WriteManager {
 
     private static final long CHECK_INTEVAL = 1000 * 60 * 5;
-    private static final int MSG_ADD = 0;
     private static final int MSG_CHECK = 1;
     private static WriteManager sInstance;
     private WritingBufferPool mPool;
@@ -63,14 +65,18 @@ public class WriteManager {
         return sInstance;
     }
 
+    public void recycle(WritingBuffer aBuf) {
+        mPool.recycle(aBuf);
+    }
+
     public void writeFile(TaskInfo aInfo, byte[] aData, int aOffset, int aLength) {
-        Bundle bundle = new Bundle();
-        bundle.putByteArray("data", aData);
-        bundle.putInt("offset", aOffset);
-        bundle.putInt("length", aLength);
-        Message msg = mHandler.obtainMessage(MSG_ADD, aInfo);
-        msg.setData(bundle);
-        msg.sendToTarget();
+        WritingBuffer buf = mPool.getBuffer(aInfo, aData, aOffset, aLength);
+        try {
+            mWritingThread.offer(buf);
+        } catch (Exception e) {
+            e.printStackTrace();
+            ServiceFacade.getInstance().fail(buf.mInfo.mKey);
+        }
     }
 
     private class WriteHandler extends Handler {
@@ -82,21 +88,6 @@ public class WriteManager {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
-                case MSG_ADD:
-                    if (msg.obj == null || !(msg.obj instanceof TaskInfo)) {
-                        return;
-                    }
-                    Bundle bundle = msg.getData();
-                    if (bundle == null) {
-                        return;
-                    }
-                    WritingBuffer buf = mPool.getBuffer((TaskInfo) msg.obj,
-                            bundle.getByteArray("data"),
-                            bundle.getInt("offset"),
-                            bundle.getInt("length"));
-                    // 传至blocking队列
-                    mWritingThread.offer(buf);
-                    break;
                 case MSG_CHECK:
                     mPool.adjustBuffercount();
                     this.sendEmptyMessageDelayed(MSG_CHECK, CHECK_INTEVAL);

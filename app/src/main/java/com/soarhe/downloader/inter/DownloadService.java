@@ -26,7 +26,9 @@ public class DownloadService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent.getAction().equals(ACTION_START)) {
+        if (intent == null) {
+
+        } else if (intent.getAction().equals(ACTION_START)) {
             TaskInfo info = intent.getParcelableExtra("data");
             if (info != null) {
                 ServiceFacade.getInstance().start(info);

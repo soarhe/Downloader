@@ -8,6 +8,7 @@ import com.squareup.okhttp.Response;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -40,6 +41,15 @@ public class OkHttpClient extends AbsNetClient{
             @Override
             public void onResponse(Response response) throws IOException {
                 try {
+                    // get header
+                    if (aCallback != null) {
+                        Map<String, String> headersMap = new HashMap<>();
+                        Headers headers = response.headers();
+                        for (int i = 0; i < headers.size(); i++) {
+                            headersMap.put(headers.name(i), headers.value(i));
+                        }
+                        aCallback.onstart(headersMap);
+                    }
                     //downloading
                     InputStream is = response.body().byteStream();
                     if (aCallback != null) {

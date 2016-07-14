@@ -44,7 +44,7 @@ public class ServiceFacade {
     }
 
     public void fail(String aKey) {
-
+        mTaskmgr.fail(aKey);
     }
 
     public void release() {
